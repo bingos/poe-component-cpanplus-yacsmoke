@@ -1,0 +1,169 @@
+NAME
+    POE::Component::CPANPLUS::YACSmoke - bringing the power of POE to CPAN smoke
+    testing.
+
+SYNOPSIS
+      use strict;
+      use POE qw(Component::CPANPLUS::YACSmoke);
+      use Getopt::Long;
+      
+  $|=1;
+      
+  my ($perl, $jobs);
+      
+  GetOptions( 'perl=s' => \$perl, 'jobs=s' => \$jobs );
+      
+  my @pending;
+      if ( $jobs ) {
+        open my $fh, "<$jobs" or die "$jobs: $!\n";
+        while (<$fh>) {
+              chomp;
+              push @pending, $_;
+        }
+        close($fh);
+      }
+      
+  my $smoker = POE::Component::CPANPLUS::YACSmoke->spawn( alias => 'smoker' );
+      
+  POE::Session->create(
+            package_states => [
+               'main' => [ qw(_start _stop _results) ],
+            ],
+            heap => { perl => $perl, pending => \@pending },
+      );
+      
+  $poe_kernel->run();
+      exit 0;
+      
+  sub _start {
+        my ($kernel,$heap) = @_[KERNEL,HEAP];
+        $kernel->post( 'smoker', 'submit', { event => '_results', perl => $heap->{perl}, module => $_ } ) 
+            for @{ $heap->{pending} };
+        undef;
+      }
+      
+  sub _stop {
+        $poe_kernel->call( 'smoker', 'shutdown' );
+        undef;
+      }
+      
+  sub _results {
+        my $job = $_[ARG0];
+        print STDOUT "Module: ", $job->{module}, "\n";
+        print STDOUT "$_\n" for @{ $job->{log} };
+        undef;
+      }
+
+DESCRIPTION
+    POE::Component::CPANPLUS::YACSmoke is a POE-based framework around CPANPLUS
+    and CPANPLUS::YACSmoke. It receives submissions from other POE sessions,
+    spawns a POE::Wheel::Run to deal with running CPANPLUS::YACSmoke, captures
+    the output and returns the results to the requesting session.
+
+    Only one job request may be processed at a time. If a job is in
+    progress, any jobs submitted are added to a pending jobs queue.
+
+    By default the component uses POE::Wheel::Run to fork another copy of
+    the currently executing perl, worked out from $^X. You can specify a
+    different perl executable to use though. MSWin32 users please see the
+    section of this document relating to your platform.
+
+    You are responsible for installing and configuring CPANPLUS and
+    CPANPLUS::YACSmoke and setting up a suitable perl smoking environment.
+
+CONSTRUCTOR
+    spawn
+        Spawns a new component session and waits for requests. Takes the
+        following optional arguments:
+
+          'alias', set an alias to send requests to later;
+          'options', specify some POE::Session options;
+          'debug', see lots of text on your console;
+          'idle', adjust the job idle time ( default: 600 seconds ), before jobs get killed;
+
+        Returns a POE::Component::CPANPLUS::YACSmoke object.
+
+METHODS
+    session_id
+        Returns the POE::Session ID of the component's session.
+
+    pending_jobs
+        In a scalar context returns the number of currently pending jobs. In
+        a list context, returns a list of hashrefs which are the jobs
+        currently waiting in the job queue.
+
+    shutdown
+        Terminates the component. Any pending jobs are cancelled and the
+        currently running job is allowed to complete gracefully. Requires no
+        additional parameters.
+
+INPUT EVENTS
+    All the events that the component will accept (unless noted otherwise )
+    require one parameter, a hashref with the following keys defined (
+    mandatory requirements are shown ):
+
+      'event', an event name for the results to be sent to (Mandatory);
+      'module', a module to test, this is passed to CPANPLUS::YACSmoke's test() method
+                so whatever that requires should work (Mandatory);
+      'session', which session the result event should go to (Default is the sender);
+      'perl', which perl executable to use (Default whatever is in $^X);
+
+    It is possible to pass arbitrary keys in the hash. These should be
+    proceeded with an underscore to avoid possible future API clashes.
+
+    submit
+    push
+        Inserts the requested job at the end of the queue ( if there is one
+        ).
+
+    unshift
+        Inserts the requested job at the head of the queue ( if there is one
+        ). Guarantees that that job is processed next.
+
+    shutdown
+        Terminates the component. Any pending jobs are cancelled and the
+        currently running job is allowed to complete gracefully. Requires no
+        additional parameters.
+
+OUTPUT EVENTS
+    Resultant events will have a hashref as ARG0. All the keys passed in as
+    part of the original request will be present (including arbitrary
+    underscore prefixed ones), with the addition of the following keys:
+
+      'log', an arrayref of STDOUT and STDERR produced by the job;
+      'PID', the process ID of the POE::Wheel::Run;
+      'status', the $? of the process;
+      'start_time', the time in epoch seconds when the job started running;
+      'end_time', the time in epoch seconds when the job finished;
+
+MSWin32
+    On MSWin32 the technique used by this component to fork does not work
+    properly. This may be a limitation of POE::Wheel::Run. I am
+    investigating.
+
+    A knock-on consequence of this, is that modules submitted will be smoked
+    with a fork of the currently running process and hence 'perl'. Bear this
+    is mind when setting up your smoking environment.
+
+AUTHOR
+    Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
+
+KUDOS
+    Many thanks to all the people who have helped me with developing this
+    module.
+
+    Specially to Jos Boumans, the CPANPLUS dude, who has patiently corrected
+    me when I have asked stupid questions and speedily fixed CPANPLUS when I
+    made disgruntled remarks about bugs >:)
+
+    And to Robert Rothenberg and Barbie for CPANPLUS::YACSmoke.
+
+SEE ALSO
+    POE
+
+    CPANPLUS
+
+    CPANPLUS::YACSmoke
+
+    <http://use.perl.org/~BinGOs/journal/>
+
