@@ -7,7 +7,7 @@ use Storable;
 use Digest::MD5 qw(md5_hex);
 use vars qw($VERSION);
 
-$VERSION = '1.58';
+$VERSION = '1.60';
 
 my $GOT_KILLFAM;
 my $GOT_PTY;
@@ -677,11 +677,18 @@ see the section of this document relating to your platform.
 You are responsible for installing and configuring L<CPANPLUS> and L<CPANPLUS::YACSmoke> and setting up
 a suitable perl smoking environment.
 
+=head1 DEPRECATION NOTICE
+
+POE::Component::CPANPLUS::YACSmoke has been superceded by L<POE::Component::SmokeBox>. The L<miniyacsmoker>
+script has been superceded by L<App::SmokeBox::Mini>.
+
+Consider this module deprecated.
+
 =head1 CONSTRUCTOR
 
 =over
 
-=item spawn
+=item C<spawn>
 
 Spawns a new component session and waits for requests. Takes the following optional arguments:
 
@@ -703,40 +710,40 @@ Returns a POE::Component::CPANPLUS::YACSmoke object.
 
 =over
 
-=item session_id
+=item C<session_id>
 
 Returns the POE::Session ID of the component's session.
 
-=item pending_jobs
+=item C<pending_jobs>
 
 In a scalar context returns the number of currently pending jobs. In a list context, returns a list of hashrefs
 which are the jobs currently waiting in the job queue.
 
-=item current_job
+=item C<current_job>
 
 Returns a hashref containing details of the currently executing smoke job. Returns undef if there isn't a job currently running.
 
-=item current_log
+=item C<current_log>
 
 Returns an arrayref of log output from the currently executing smoke job. Returns undef if there isn't a job currently running.
 
-=item shutdown
+=item C<shutdown>
 
 Terminates the component. Any pending jobs are cancelled and the currently running job is allowed to complete gracefully. Requires no additional parameters.
 
-=item pause_queue
+=item C<pause_queue>
 
 Pauses processing of the jobs. The current job will finish processing, but any pending jobs will not be processed until the queue is resumed. This does not affect the continued submission of jobs to the queue.
 
-=item resume_queue
+=item C<resume_queue>
 
 Resumes the processing of the pending jobs queue if it has been previously paused.
 
-=item paused
+=item C<paused>
 
 Returns a true value if the job queue is paused or a false value otherwise.
 
-=item statistics
+=item C<statistics>
 
 Returns some statistical that the component gathers. In a list context returns a list of data. In a scalar
 context returns an arrayref of the said data.
@@ -768,21 +775,21 @@ possible future API clashes.
 
 =over
 
-=item submit
+=item C<submit>
 
-=item push
+=item C<push>
 
 Inserts the requested job at the end of the queue ( if there is one ).
 
-=item unshift
+=item C<unshift>
 
 Inserts the requested job at the head of the queue ( if there is one ). Guarantees that that job is processed next.
 
-=item shutdown
+=item C<shutdown>
 
 Terminates the component. Any pending jobs are cancelled and the currently running job is allowed to complete gracefully. Requires no additional parameters.
 
-=item recent
+=item C<recent>
 
 Obtain a list of recent uploads to CPAN.
 
@@ -795,7 +802,7 @@ Takes one parameter, hashref with the following keys defined:
 It is possible to pass arbitrary keys in the hash. These should be proceeded with an underscore to avoid
 possible future API clashes.
 
-=item author
+=item C<author>
 
 Obtain a list of distributions for a given author.
 
@@ -810,7 +817,7 @@ Takes one parameter, a hashref with the following keys defined:
 It is possible to pass arbitrary keys in the hash. These should be proceeded with an underscore to avoid
 possible future API clashes.
 
-=item package
+=item C<package>
 
 obtain a list of distributions given criteria to search for.
 
@@ -825,7 +832,7 @@ Takes one parameter, a hashref with the following keys defined:
 It is possible to pass arbitrary keys in the hash. These should be proceeded with an underscore to avoid
 possible future API clashes.
 
-=item check
+=item C<check>
 
 Checks whether L<CPANPLUS::YACSmoke> is installed. Takes one parameter a hashref with the following keys 
 defined:
@@ -837,7 +844,7 @@ defined:
 It is possible to pass arbitrary keys in the hash. These should be proceeded with an underscore to avoid
 possible future API clashes.
   
-=item indices
+=item C<indices>
 
 Forces an update of the CPANPLUS indices. Takes one parameter, a hashref with the following keys defined:
 
@@ -886,7 +893,7 @@ Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
 
 =head1 LICENSE
 
-Copyright C<(c)> Chris Williams and Jonathan Steinert
+Copyright E<copy> Chris Williams
 
 This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
 
@@ -902,6 +909,10 @@ And to Robert Rothenberg and Barbie for L<CPANPLUS::YACSmoke>.
 
 =head1 SEE ALSO
 
+L<POE::Component::SmokeBox>
+
+L<App::SmokeBox::Mini>
+
 L<minismoker>
 
 L<POE>
@@ -913,3 +924,5 @@ L<CPANPLUS::YACSmoke>
 L<http://cpantest.grango.org/cgi-bin/pages.cgi?act=wiki-page&pagename=YACSmokePOE>
 
 L<http://use.perl.org/~BinGOs/journal/>
+
+=cut

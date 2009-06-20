@@ -1,6 +1,10 @@
 POE::Component::CPANPLUS::YACSmoke
 ==================================
 
+1.60	Sat Jun 20 11:23:20 BST 2009
+	- Makefile.PL meta updates
+	- Deprecation warnings.
+
 1.58	Thu Dec 18 21:50:11 GMT 2008
 	- Added IO::Pty as a prereq, and we will use Conduit 
 	  'pty-pipe' with POE::Wheel::Run, which solves some
