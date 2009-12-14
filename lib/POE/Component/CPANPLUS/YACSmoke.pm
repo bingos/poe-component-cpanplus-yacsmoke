@@ -165,7 +165,7 @@ sub _command {
 
   $args->{lc $_} = delete $args->{$_} for grep { $_ !~ /^_/ } keys %{ $args };
 
-  my $ref = $kernel->alias_resolve( $args->{session} ) || $sender;
+  my $ref = $args->{session} ? $kernel->alias_resolve( $args->{session} ) : $sender;
   $args->{session} = $ref->ID();
 
   if ( !$args->{module} and $state !~ /^(recent|check|indices|package|author|flush)$/i ) {
