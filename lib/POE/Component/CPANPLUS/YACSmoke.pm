@@ -7,7 +7,7 @@ use Storable;
 use Digest::MD5 qw(md5_hex);
 use vars qw($VERSION);
 
-$VERSION = '1.60';
+$VERSION = '1.62';
 
 my $GOT_KILLFAM;
 my $GOT_PTY;
