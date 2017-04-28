@@ -1,13 +1,12 @@
 package POE::Component::CPANPLUS::YACSmoke;
 
+#ABSTRACT: Bringing the power of POE to CPAN smoke testing.
+
 use strict;
 use warnings;
 use POE qw(Wheel::Run);
 use Storable;
 use Digest::MD5 qw(md5_hex);
-use vars qw($VERSION);
-
-$VERSION = '1.62';
 
 my $GOT_KILLFAM;
 my $GOT_PTY;
@@ -43,7 +42,7 @@ sub spawn {
   my $self = bless \%opts, $package;
   $self->{session_id} = POE::Session->create(
 	object_states => [
-	   $self => { shutdown  => '_shutdown', 
+	   $self => { shutdown  => '_shutdown',
 		      submit    => '_command',
 		      push      => '_command',
 		      unshift   => '_command',
@@ -582,31 +581,28 @@ sub _get_pids {
       if ($proc->ppid == $kid) {
 	my $pid = $proc->pid;
 	push @pids, $pid, _get_pids( $procs, $pid );
-      } 
+      }
     }
   }
   @pids;
 }
 
 1;
-__END__
 
-=head1 NAME
-
-POE::Component::CPANPLUS::YACSmoke - Bringing the power of POE to CPAN smoke testing.
+=pod
 
 =head1 SYNOPSIS
 
   use strict;
   use POE qw(Component::CPANPLUS::YACSmoke);
   use Getopt::Long;
-  
+
   $|=1;
-  
+
   my ($perl, $jobs);
-  
+
   GetOptions( 'perl=s' => \$perl, 'jobs=s' => \$jobs );
-  
+
   my @pending;
   if ( $jobs ) {
     open my $fh, "<$jobs" or die "$jobs: $!\n";
@@ -616,36 +612,36 @@ POE::Component::CPANPLUS::YACSmoke - Bringing the power of POE to CPAN smoke tes
     }
     close($fh);
   }
-  
+
   my $smoker = POE::Component::CPANPLUS::YACSmoke->spawn( alias => 'smoker' );
-  
+
   POE::Session->create(
-  	package_states => [
-  	   'main' => [ qw(_start _stop _results _recent) ],
-  	],
-  	heap => { perl => $perl, pending => \@pending },
+   package_states => [
+     'main' => [ qw(_start _stop _results _recent) ],
+  ],
+  heap => { perl => $perl, pending => \@pending },
   );
-  
+
   $poe_kernel->run();
   exit 0;
-  
+
   sub _start {
     my ($kernel,$heap) = @_[KERNEL,HEAP];
     if ( @{ $heap->{pending} } ) {
       $kernel->post( 'smoker', 'submit', { event => '_results', perl => $heap->{perl}, module => $_ } ) 
-  	for @{ $heap->{pending} };
+        for @{ $heap->{pending} };
     }
     else {
       $kernel->post( 'smoker', 'recent', { event => '_recent', perl => $heap->{perl} } ) 
     }
     undef;
   }
-  
+
   sub _stop {
     $poe_kernel->call( 'smoker', 'shutdown' );
     undef;
   }
-  
+
   sub _results {
     my $job = $_[ARG0];
     print STDOUT "Module: ", $job->{module}, "\n";
@@ -660,7 +656,7 @@ POE::Component::CPANPLUS::YACSmoke - Bringing the power of POE to CPAN smoke tes
     undef;
   }
 
-  
+
 =head1 DESCRIPTION
 
 POE::Component::CPANPLUS::YACSmoke is a POE-based framework around L<CPANPLUS> and L<CPANPLUS::YACSmoke>.
@@ -755,7 +751,7 @@ The data is returned in the following order:
   The current average job run time;
   The minimum job run time observed;
   The maximum job run time observed;
-  
+
 =back
 
 =head1 INPUT EVENTS
@@ -843,7 +839,7 @@ defined:
 
 It is possible to pass arbitrary keys in the hash. These should be proceeded with an underscore to avoid
 possible future API clashes.
-  
+
 =item C<indices>
 
 Forces an update of the CPANPLUS indices. Takes one parameter, a hashref with the following keys defined:
@@ -886,16 +882,6 @@ POE::Component::CPANPLUS::YACSmoke now supports MSWin32 in the same manner as ot
 used to fix the issues surrounding L<POE::Wheel::Run> and forking alternative copies of the perl executable.
 
 The code is still experimental though. Be warned.
-
-=head1 AUTHOR
-
-Chris 'BinGOs' Williams <chris@bingosnet.co.uk>
-
-=head1 LICENSE
-
-Copyright E<copy> Chris Williams
-
-This module may be used, modified, and distributed under the same terms as Perl itself. Please see the license that came with your Perl distribution for details.
 
 =head1 KUDOS
 
